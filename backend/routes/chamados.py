@@ -20,8 +20,9 @@ FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 def agora_brasilia():
     """
-    Retorna data e hora atuais no horário de Brasília.
+    Retorna a data e hora atuais do Brasil.
     """
+
     return datetime.now(FUSO_BRASILIA)
 
 
@@ -48,6 +49,7 @@ def atualizar_status():
 
         chamados = cursor.fetchall()
 
+        # Data atual de Brasília
         hoje = agora_brasilia().date()
 
         for chamado in chamados:
@@ -210,6 +212,28 @@ def criar_chamado():
 
 
     # -----------------------------------------------------
+    # IMPORTANTE
+    #
+    # Transformamos a hora em uma string simples.
+    #
+    # Assim o MySQL recebe exatamente:
+    #
+    # 13:45:00
+    #
+    # e não tenta interpretar timezone.
+    # -----------------------------------------------------
+
+    hora_abertura = agora.strftime(
+        "%H:%M:%S"
+    )
+
+
+    data_abertura = agora.strftime(
+        "%Y-%m-%d"
+    )
+
+
+    # -----------------------------------------------------
     # SQL
     # -----------------------------------------------------
 
@@ -284,9 +308,9 @@ def criar_chamado():
 
         dados["funcionario"],
 
-        agora.date(),
+        data_abertura,
 
-        agora.time(),
+        hora_abertura,
 
         dados["servico"],
 
@@ -358,7 +382,11 @@ def criar_chamado():
 
         "numero_chamado": numero_chamado,
 
-        "status": "ABERTO"
+        "status": "ABERTO",
+
+        "data_abertura": data_abertura,
+
+        "horario_abertura": hora_abertura
 
     }), 201
 
@@ -1038,10 +1066,19 @@ def concluir_chamado(id):
     try:
 
         # -------------------------------------------------
-        # PEGAR DATA/HORA DE BRASÍLIA
+        # DATA E HORA DE BRASÍLIA
         # -------------------------------------------------
 
         agora = agora_brasilia()
+
+
+        # -------------------------------------------------
+        # TRANSFORMAR EM DATA/HORA SIMPLES
+        # -------------------------------------------------
+
+        data_conclusao = agora.strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
 
 
         # -------------------------------------------------
@@ -1060,9 +1097,7 @@ def concluir_chamado(id):
             WHERE id = %s
 
         """, (
-            agora.replace(
-                tzinfo=None
-            ),
+            data_conclusao,
             id
         ))
 
@@ -1105,6 +1140,8 @@ def concluir_chamado(id):
 
     return jsonify({
 
-        "mensagem": "Chamado concluído com sucesso!"
+        "mensagem": "Chamado concluído com sucesso!",
+
+        "data_conclusao": data_conclusao
 
     })
