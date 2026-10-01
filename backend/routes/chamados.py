@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database.connection import conectar_banco
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 chamados_bp = Blueprint(
@@ -8,6 +9,20 @@ chamados_bp = Blueprint(
     __name__,
     url_prefix="/api/chamados"
 )
+
+
+# =========================================================
+# FUSO HORÁRIO DO SISTEMA
+# =========================================================
+
+FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
+
+
+def agora_brasilia():
+    """
+    Retorna data e hora atuais no horário de Brasília.
+    """
+    return datetime.now(FUSO_BRASILIA)
 
 
 # =========================================================
@@ -33,7 +48,7 @@ def atualizar_status():
 
         chamados = cursor.fetchall()
 
-        hoje = datetime.now().date()
+        hoje = agora_brasilia().date()
 
         for chamado in chamados:
 
@@ -186,7 +201,12 @@ def criar_chamado():
 
     cursor = conexao.cursor()
 
-    agora = datetime.now()
+
+    # -----------------------------------------------------
+    # DATA E HORA DE BRASÍLIA
+    # -----------------------------------------------------
+
+    agora = agora_brasilia()
 
 
     # -----------------------------------------------------
@@ -1017,6 +1037,17 @@ def concluir_chamado(id):
 
     try:
 
+        # -------------------------------------------------
+        # PEGAR DATA/HORA DE BRASÍLIA
+        # -------------------------------------------------
+
+        agora = agora_brasilia()
+
+
+        # -------------------------------------------------
+        # ATUALIZAR
+        # -------------------------------------------------
+
         cursor.execute("""
             UPDATE chamados
 
@@ -1024,12 +1055,15 @@ def concluir_chamado(id):
 
                 status = 'CONCLUÍDO',
 
-                data_conclusao = NOW()
+                data_conclusao = %s
 
             WHERE id = %s
 
         """, (
-            id,
+            agora.replace(
+                tzinfo=None
+            ),
+            id
         ))
 
 
