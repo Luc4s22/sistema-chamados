@@ -39,6 +39,18 @@ def conectar_banco():
 
         )
 
+        # =================================================
+        # CONFIGURAR FUSO HORÁRIO DO MYSQL
+        # =================================================
+
+        cursor = conexao.cursor()
+
+        cursor.execute(
+            "SET time_zone = '-03:00'"
+        )
+
+        cursor.close()
+
         return conexao
 
     except mysql.connector.Error as erro:
