@@ -1,4 +1,5 @@
-const API_URL = "http://127.0.0.1:5000/api/chamados";
+const API_URL =
+    "https://sistema-chamados-production-24e1.up.railway.app/api/chamados";
 
 let chamadoEditandoId = null;
 let todosOsChamados = [];
