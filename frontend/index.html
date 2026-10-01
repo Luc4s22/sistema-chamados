@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Chamados</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <!-- =====================================================
+         CABEÇALHO
+    ====================================================== -->
+
+    <header class="topo">
+
+        <div>
+
+            <h1>Sistema de Chamados</h1>
+
+            <p>
+                Controle de ordens de serviço
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         CONTEÚDO
+    ====================================================== -->
+
+    <main class="container">
+
+
+        <!-- =================================================
+             NOVO CHAMADO
+        ================================================== -->
+
+        <section class="card">
+
+            <h2>Novo Chamado</h2>
+
+            <form id="formChamado">
+
+                <div class="grid">
+
+
+                    <!-- NÚMERO DO CHAMADO -->
+
+                    <div class="campo">
+
+                        <label for="numero_chamado">
+                            Número do Chamado
+                        </label>
+
+                        <input
+                            type="number"
+                            id="numero_chamado"
+                            name="numero_chamado"
+                            placeholder="Digite o número (opcional)"
+                        >
+
+                    </div>
+
+
+                    <!-- USUÁRIO -->
+
+                    <div class="campo">
+
+                        <label for="usuario">
+                            Usuário
+                        </label>
+
+                        <input
+                            type="text"
+                            id="usuario"
+                            name="usuario"
+                            placeholder="Digite o usuário (opcional)"
+                        >
+
+                    </div>
+
+
+                    <!-- FUNCIONÁRIO -->
+
+                    <div class="campo">
+
+                        <label for="funcionario">
+                            Funcionário
+                        </label>
+
+                        <input
+                            type="text"
+                            id="funcionario"
+                            name="funcionario"
+                            placeholder="Digite o funcionário"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- SERVIÇO -->
+
+                    <div class="campo">
+
+                        <label for="servico">
+                            Serviço
+                        </label>
+
+                        <input
+                            type="text"
+                            id="servico"
+                            name="servico"
+                            placeholder="Digite o serviço"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- SOLICITANTE -->
+
+                    <div class="campo">
+
+                        <label for="solicitante">
+                            Solicitante
+                        </label>
+
+                        <input
+                            type="text"
+                            id="solicitante"
+                            name="solicitante"
+                            placeholder="Digite o solicitante"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- SETOR -->
+
+                    <div class="campo">
+
+                        <label for="setor">
+                            Setor
+                        </label>
+
+                        <input
+                            type="text"
+                            id="setor"
+                            name="setor"
+                            placeholder="Digite o setor"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- UNIDADE -->
+
+                    <div class="campo">
+
+                        <label for="unidade">
+                            Unidade
+                        </label>
+
+                        <select
+                            id="unidade"
+                            name="unidade"
+                            required
+                        >
+
+                            <option value="">
+                                Selecione a unidade
+                            </option>
+
+                            <option value="Pequenas Obras">
+                                PEQUENAS OBRAS
+                            </option>
+
+                            <option value="Marcenaria">
+                                MARCENARIA
+                            </option>
+
+                            <option value="Elétrica">
+                                ELÉTRICA
+                            </option>
+
+                            <option value="Refrigeração">
+                                REFRIGERAÇÃO
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ANDAR -->
+
+                    <div class="campo">
+
+                        <label for="andar">
+                            Andar
+                        </label>
+
+                        <input
+                            type="text"
+                            id="andar"
+                            name="andar"
+                            placeholder="Digite o andar"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- PRÉDIO -->
+
+                    <div class="campo">
+
+                        <label for="predio">
+                            Prédio
+                        </label>
+
+                        <input
+                            type="text"
+                            id="predio"
+                            name="predio"
+                            placeholder="Digite o prédio"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- OBSERVAÇÃO -->
+
+                <div class="campo">
+
+                    <label for="observacao">
+                        Observação
+                    </label>
+
+                    <textarea
+                        id="observacao"
+                        name="observacao"
+                        rows="4"
+                        placeholder="Digite uma observação"
+                    ></textarea>
+
+                </div>
+
+
+                <!-- BOTÃO -->
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                >
+                    Abrir Chamado
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- =================================================
+             LISTA DE CHAMADOS
+        ================================================== -->
+
+        <section class="card">
+
+            <div class="titulo-lista">
+
+                <div>
+
+                    <h2>Chamados</h2>
+
+                    <p>
+                        Acompanhamento das solicitações
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    onclick="carregarChamados()"
+                    class="btn-atualizar"
+                >
+                    Atualizar
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 CONTADORES DE O.S.
+            ================================================== -->
+
+            <div class="contadores-os">
+
+
+                <!-- TOTAL -->
+
+                <div class="contador-card">
+
+                    <span class="contador-titulo">
+                        Total de O.S.
+                    </span>
+
+                    <strong id="totalOS">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <!-- ABERTAS -->
+
+                <div class="contador-card contador-aberto">
+
+                    <span class="contador-titulo">
+                        Abertas
+                    </span>
+
+                    <strong id="totalAbertas">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <!-- PENDENTES -->
+
+                <div class="contador-card contador-pendente">
+
+                    <span class="contador-titulo">
+                        Pendentes
+                    </span>
+
+                    <strong id="totalPendentes">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <!-- CONCLUÍDAS -->
+
+                <div class="contador-card contador-concluido">
+
+                    <span class="contador-titulo">
+                        Concluídas
+                    </span>
+
+                    <strong id="totalConcluidas">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PESQUISA
+            ================================================== -->
+
+            <div class="pesquisa-container">
+
+                <label for="pesquisaChamados">
+                    Pesquisar chamados
+                </label>
+
+                <input
+                    type="text"
+                    id="pesquisaChamados"
+                    placeholder="Digite o setor ou número do chamado..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <!-- =================================================
+                 TABELA
+            ================================================== -->
+
+            <div class="tabela-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Chamado</th>
+
+                            <th>Usuário</th>
+
+                            <th>Funcionário</th>
+
+                            <th>Data</th>
+
+                            <th>Horário</th>
+
+                            <th>Serviço</th>
+
+                            <th>Solicitante</th>
+
+                            <th>Setor</th>
+
+                            <th>Unidade</th>
+
+                            <th>Andar</th>
+
+                            <th>Prédio</th>
+
+                            <th>Observação</th>
+
+                            <th>Status</th>
+
+                            <th>Ação</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="listaChamados">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         MODAL EDITAR CHAMADO
+    ====================================================== -->
+
+    <div id="modalEditar" class="modal">
+
+        <div class="modal-conteudo">
+
+            <div class="modal-cabecalho">
+
+                <h2>
+                    Editar Chamado
+                </h2>
+
+                <button
+                    type="button"
+                    class="btn-fechar"
+                    onclick="fecharModal()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="grid">
+
+
+                <!-- NÚMERO -->
+
+                <div class="campo">
+
+                    <label for="editarNumero">
+                        Número do Chamado
+                    </label>
+
+                    <input
+                        type="number"
+                        id="editarNumero"
+                        placeholder="Opcional"
+                    >
+
+                </div>
+
+
+                <!-- USUÁRIO -->
+
+                <div class="campo">
+
+                    <label for="editarUsuario">
+                        Usuário
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editarUsuario"
+                        placeholder="Opcional"
+                    >
+
+                </div>
+
+
+                <!-- FUNCIONÁRIO -->
+
+                <div class="campo">
+
+                    <label for="editarFuncionario">
+                        Funcionário
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editarFuncionario"
+                    >
+
+                </div>
+
+
+                <!-- SERVIÇO -->
+
+                <div class="campo">
+
+                    <label for="editarServico">
+                        Serviço
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editarServico"
+                    >
+
+                </div>
+
+
+                <!-- SOLICITANTE -->
+
+                <div class="campo">
+
+                    <label for="editarSolicitante">
+                        Solicitante
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editarSolicitante"
+                    >
+
+                </div>
+
+
+                <!-- SETOR -->
+
+                <div class="campo">
+
+                    <label for="editarSetor">
+                        Setor
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editarSetor"
+                    >
+
+                </div>
+
+
+                <!-- UNIDADE -->
+
+                <div class="campo">
+
+                    <label for="editarUnidade">
+                        Unidade
+                    </label>
+
+                    <select id="editarUnidade">
+
+                        <option value="">
+                            Selecione a unidade
+                        </option>
+
+                        <option value="Pequenas Obras">
+                            PEQUENAS OBRAS
+                        </option>
+
+                        <option value="Marcenaria">
+                            MARCENARIA
+                        </option>
+
+                        <option value="Elétrica">
+                            ELÉTRICA
+                        </option>
+
+                        <option value="Refrigeração">
+                            REFRIGERAÇÃO
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ANDAR -->
+
+                <div class="campo">
+
+                    <label for="editarAndar">
+                        Andar
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editarAndar"
+                    >
+
+                </div>
+
+
+                <!-- PRÉDIO -->
+
+                <div class="campo">
+
+                    <label for="editarPredio">
+                        Prédio
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editarPredio"
+                    >
+
+                </div>
+
+
+                <!-- OBSERVAÇÃO -->
+
+                <div class="campo">
+
+                    <label for="editarObservacao">
+                        Observação
+                    </label>
+
+                    <textarea
+                        id="editarObservacao"
+                        rows="4"
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTÕES DO MODAL -->
+
+            <div class="modal-acoes">
+
+                <button
+                    type="button"
+                    class="btn-cancelar"
+                    onclick="fecharModal()"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-salvar"
+                    onclick="salvarEdicao()"
+                >
+                    Salvar Alterações
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

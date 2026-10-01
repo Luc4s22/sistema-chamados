@@ -1,0 +1,945 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* =====================================================
+   BODY
+===================================================== */
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #222;
+}
+
+
+/* =====================================================
+   TOPO
+===================================================== */
+
+.topo {
+    background: #1f2937;
+    color: white;
+
+    padding: 20px 40px;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 90px;
+
+    z-index: 9998;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.15);
+}
+
+
+.topo h1 {
+    margin-bottom: 5px;
+}
+
+
+.topo p {
+    color: #d1d5db;
+}
+
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.container {
+    width: 95%;
+    max-width: 1600px;
+
+    margin: 0 auto;
+
+    /*
+       Espaço para o conteúdo não ficar
+       escondido atrás do topo fixo
+    */
+    padding-top: 120px;
+}
+
+
+/* =====================================================
+   CONTADORES DE O.S.
+===================================================== */
+
+.contadores-os {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 18px;
+
+    margin-bottom: 25px;
+}
+
+
+/* =====================================================
+   CARD DO CONTADOR
+===================================================== */
+
+.contador-card {
+    background: white;
+
+    border-radius: 10px;
+
+    padding: 22px;
+
+    box-shadow:
+        0 2px 10px
+        rgba(0, 0, 0, 0.08);
+
+    border-left: 5px solid #374151;
+}
+
+
+.contador-titulo {
+    color: #6b7280;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    margin-bottom: 10px;
+}
+
+
+.contador-numero {
+    font-size: 32px;
+
+    font-weight: bold;
+
+    color: #1f2937;
+}
+
+
+/* =====================================================
+   CONTADOR - ABERTO
+===================================================== */
+
+.contador-aberto {
+    border-left-color: #2563eb;
+}
+
+
+.contador-aberto .contador-numero {
+    color: #1d4ed8;
+}
+
+
+/* =====================================================
+   CONTADOR - PENDENTE
+===================================================== */
+
+.contador-pendente {
+    border-left-color: #f59e0b;
+}
+
+
+.contador-pendente .contador-numero {
+    color: #d97706;
+}
+
+
+/* =====================================================
+   CONTADOR - CONCLUÍDO
+===================================================== */
+
+.contador-concluido {
+    border-left-color: #16a34a;
+}
+
+
+.contador-concluido .contador-numero {
+    color: #15803d;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.card {
+    background: white;
+
+    border-radius: 10px;
+
+    padding: 25px;
+
+    margin-bottom: 25px;
+
+    box-shadow:
+        0 2px 10px
+        rgba(0, 0, 0, 0.08);
+}
+
+
+.card h2 {
+    margin-bottom: 20px;
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 18px;
+}
+
+
+/* =====================================================
+   CAMPOS
+===================================================== */
+
+.campo {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    margin-bottom: 18px;
+}
+
+
+.campo label {
+    font-weight: bold;
+
+    font-size: 14px;
+}
+
+
+.campo input,
+.campo select,
+.campo textarea {
+    width: 100%;
+
+    padding: 11px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    background: white;
+}
+
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+    outline: none;
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 2px
+        rgba(37, 99, 235, 0.10);
+}
+
+
+.campo textarea {
+    resize: vertical;
+
+    min-height: 100px;
+}
+
+
+/* =====================================================
+   BOTÃO PRINCIPAL
+===================================================== */
+
+.btn-primary {
+    background: #2563eb;
+
+    color: white;
+
+    border: none;
+
+    padding: 12px 22px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+    font-size: 14px;
+}
+
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+
+/* =====================================================
+   TÍTULO DA LISTA
+===================================================== */
+
+.titulo-lista {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+}
+
+
+.titulo-lista p {
+    color: #6b7280;
+
+    margin-top: 5px;
+}
+
+
+/* =====================================================
+   BOTÃO ATUALIZAR
+===================================================== */
+
+.btn-atualizar {
+    background: #374151;
+
+    color: white;
+
+    border: none;
+
+    padding: 10px 18px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+}
+
+
+.btn-atualizar:hover {
+    background: #111827;
+}
+
+
+/* =====================================================
+   PESQUISA
+===================================================== */
+
+.pesquisa-container {
+    margin-bottom: 20px;
+}
+
+
+.pesquisa-container label {
+    display: block;
+
+    font-weight: bold;
+
+    font-size: 14px;
+
+    margin-bottom: 7px;
+}
+
+
+.pesquisa-container input {
+    width: 100%;
+
+    padding: 12px 14px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    background: white;
+}
+
+
+.pesquisa-container input:focus {
+    outline: none;
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 2px
+        rgba(37, 99, 235, 0.10);
+}
+
+
+.pesquisa-container input::placeholder {
+    color: #9ca3af;
+}
+
+
+/* =====================================================
+   TABELA
+===================================================== */
+
+.tabela-container {
+    overflow-x: auto;
+}
+
+
+table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 1400px;
+}
+
+
+thead {
+    background: #1f2937;
+
+    color: white;
+}
+
+
+th,
+td {
+    padding: 12px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    text-align: left;
+
+    font-size: 13px;
+}
+
+
+th {
+    white-space: nowrap;
+}
+
+
+tbody tr:hover {
+    background: #f9fafb;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.status {
+    display: inline-block;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+
+/* ABERTO */
+
+.status-aberto {
+    background: #dbeafe;
+
+    color: #1d4ed8;
+}
+
+
+/* PENDENTE */
+
+.status-pendente {
+    background: #fef3c7;
+
+    color: #92400e;
+}
+
+
+/* CONCLUÍDO */
+
+.status-concluido {
+    background: #dcfce7;
+
+    color: #166534;
+}
+
+
+/* =====================================================
+   AÇÕES
+===================================================== */
+
+.acoes {
+    display: flex;
+
+    gap: 6px;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+}
+
+
+/* =====================================================
+   BOTÃO EDITAR
+===================================================== */
+
+.btn-editar {
+    background: #f59e0b;
+
+    color: white;
+
+    border: none;
+
+    padding: 7px 10px;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    font-size: 12px;
+}
+
+
+.btn-editar:hover {
+    background: #d97706;
+}
+
+
+/* =====================================================
+   BOTÃO CONCLUIR
+===================================================== */
+
+.btn-concluir {
+    background: #16a34a;
+
+    color: white;
+
+    border: none;
+
+    padding: 7px 10px;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    font-size: 12px;
+}
+
+
+.btn-concluir:hover {
+    background: #15803d;
+}
+
+
+/* =====================================================
+   BOTÃO EXCLUIR
+===================================================== */
+
+.btn-excluir {
+    background: #dc2626;
+
+    color: white;
+
+    border: none;
+
+    padding: 7px 10px;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    font-size: 12px;
+}
+
+
+.btn-excluir:hover {
+    background: #b91c1c;
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal {
+    display: none;
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.55);
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 9999;
+
+    padding: 20px;
+}
+
+
+.modal.ativo {
+    display: flex;
+}
+
+
+/* =====================================================
+   CONTEÚDO DO MODAL
+===================================================== */
+
+.modal-conteudo {
+    background: white;
+
+    width: 95%;
+
+    max-width: 900px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    padding: 25px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(0, 0, 0, 0.25);
+}
+
+
+/* =====================================================
+   CABEÇALHO DO MODAL
+===================================================== */
+
+.modal-cabecalho {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    padding-bottom: 15px;
+}
+
+
+.modal-cabecalho h2 {
+    margin: 0;
+}
+
+
+.btn-fechar {
+    border: none;
+
+    background: transparent;
+
+    font-size: 30px;
+
+    cursor: pointer;
+
+    color: #555;
+
+    line-height: 1;
+}
+
+
+.btn-fechar:hover {
+    color: #000;
+}
+
+
+/* =====================================================
+   CAMPOS DO MODAL
+===================================================== */
+
+.modal-conteudo .grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 18px;
+}
+
+
+.modal-conteudo .campo {
+    margin-bottom: 0;
+}
+
+
+.modal-conteudo .campo:last-child {
+    grid-column: 1 / -1;
+}
+
+
+.modal-conteudo textarea {
+    resize: vertical;
+
+    min-height: 100px;
+}
+
+
+/* =====================================================
+   BOTÕES DO MODAL
+===================================================== */
+
+.modal-acoes {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+
+/* =====================================================
+   BOTÃO CANCELAR
+===================================================== */
+
+.btn-cancelar {
+    background: #6b7280;
+
+    color: white;
+
+    border: none;
+
+    padding: 10px 18px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+}
+
+
+.btn-cancelar:hover {
+    background: #4b5563;
+}
+
+
+/* =====================================================
+   BOTÃO SALVAR
+===================================================== */
+
+.btn-salvar {
+    background: #2563eb;
+
+    color: white;
+
+    border: none;
+
+    padding: 10px 18px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+}
+
+
+.btn-salvar:hover {
+    background: #1d4ed8;
+}
+
+
+/* =====================================================
+   RESPONSIVO - ATÉ 900PX
+===================================================== */
+
+@media (max-width: 900px) {
+
+    /* CONTADORES */
+
+    .contadores-os {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+
+    /* FORMULÁRIO */
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    /* MODAL */
+
+    .modal-conteudo .grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .modal-conteudo .campo:last-child {
+        grid-column: auto;
+    }
+
+
+    /* TÍTULO DA LISTA */
+
+    .titulo-lista {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+    }
+
+
+    /* TOPO */
+
+    .topo {
+        height: auto;
+
+        min-height: 90px;
+
+        padding: 20px;
+    }
+
+
+    /* CONTAINER */
+
+    .container {
+        width: 94%;
+
+        padding-top: 120px;
+    }
+
+
+    /* MODAL */
+
+    .modal {
+        padding: 10px;
+    }
+
+
+    .modal-conteudo {
+        width: 100%;
+
+        max-height: 95vh;
+
+        padding: 20px;
+    }
+
+
+    /* BOTÕES DO MODAL */
+
+    .modal-acoes {
+        flex-direction: column;
+    }
+
+
+    .btn-cancelar,
+    .btn-salvar {
+        width: 100%;
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVO - ATÉ 600PX
+===================================================== */
+
+@media (max-width: 600px) {
+
+    /* CONTADORES */
+
+    .contadores-os {
+        grid-template-columns: 1fr;
+    }
+
+
+    /* AÇÕES */
+
+    .acoes {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .btn-editar,
+    .btn-concluir,
+    .btn-excluir {
+        width: 100%;
+    }
+
+
+    /* TÍTULO */
+
+    .topo h1 {
+        font-size: 24px;
+    }
+
+
+    /* TOPO */
+
+    .topo {
+        padding: 18px;
+    }
+
+
+    /* CONTAINER */
+
+    .container {
+        width: 94%;
+
+        padding-top: 115px;
+    }
+
+
+    /* CARDS */
+
+    .card {
+        padding: 18px;
+    }
+
+
+    /* CONTADOR */
+
+    .contador-card {
+        padding: 18px;
+    }
+
+
+    .contador-numero {
+        font-size: 28px;
+    }
+
+}
