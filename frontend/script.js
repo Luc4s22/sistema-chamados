@@ -49,45 +49,46 @@ function verificarNovosChamados(chamados) {
     }
 }
 
-function mostrarAvisoNovosChamados(quantidade) {
-    let aviso = document.getElementById("avisoNovoChamado");
 
-    if (!aviso) {
-        aviso = document.createElement("div");
-        aviso.id = "avisoNovoChamado";
+async function alternarSom() {
+    const botao = document.getElementById("alternarSom");
 
-        aviso.setAttribute("role", "status");
-        aviso.setAttribute("aria-live", "polite");
+    if (somAtivado) {
+        somAtivado = false;
+        localStorage.setItem("somChamadosAtivado", "false");
+    } else {
+        const AudioContextClass =
+            window.AudioContext || window.webkitAudioContext;
 
-        Object.assign(aviso.style, {
-            position: "fixed",
-            right: "20px",
-            bottom: "20px",
-            background: "#214c37",
-            color: "#ffffff",
-            borderRadius: "10px",
-            padding: "16px 22px",
-            zIndex: "99999",
-            boxShadow: "0 4px 16px #0004",
-            fontWeight: "bold",
-            maxWidth: "calc(100vw - 40px)"
-        });
+        if (!AudioContextClass) {
+            alert("Navegador sem suporte a áudio.");
+            return;
+        }
 
-        document.body.appendChild(aviso);
+        try {
+            if (!contextoAudio) {
+                contextoAudio = new AudioContextClass();
+            }
+
+            await contextoAudio.resume();
+
+            somAtivado = contextoAudio.state === "running";
+
+            if (somAtivado) {
+                localStorage.setItem("somChamadosAtivado", "true");
+            }
+        } catch (erro) {
+            console.error("Erro ao ativar som:", erro);
+        }
     }
 
-    aviso.textContent = quantidade === 1
-        ? "🔔 Novo chamado recebido!"
-        : `🔔 ${quantidade} novos chamados recebidos!`;
-
-    aviso.hidden = false;
-
-    clearTimeout(temporizadorAviso);
-
-    temporizadorAviso = setTimeout(() => {
-        aviso.hidden = true;
-    }, 6000);
+    if (botao) {
+        botao.textContent = somAtivado
+            ? "🔊 Som ativado"
+            : "🔔 Ativar som";
+    }
 }
+
 
 async function restaurarSomAutomaticamente() {
     const preferencia =
