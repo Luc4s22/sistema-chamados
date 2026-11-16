@@ -129,43 +129,54 @@ async function alternarSom() {
     }
 }
 
-function tocarSomNotificacao() {
-    if (
-        !somAtivado ||
-        !contextoAudio ||
-        contextoAudio.state !== "running"
-    ) {
-        return;
-    }
 
-    // Dois bipes curtos de notificação.
-    [0, 0.2].forEach((atraso, indice) => {
-        const inicio = contextoAudio.currentTime + atraso;
+function tocarSomNotificacao() {
+    if (!somAtivado || !contextoAudio) return;
+
+    if (contextoAudio.state !== "running") return;
+
+    // Alarme com 3 toques fortes
+    const frequencias = [850, 1050, 850];
+
+    frequencias.forEach((frequencia, indice) => {
+        const inicio =
+            contextoAudio.currentTime + (indice * 0.35);
 
         const oscilador = contextoAudio.createOscillator();
-        const ganho = contextoAudio.createGain();
+        const volume = contextoAudio.createGain();
 
-        oscilador.type = "sine";
-        oscilador.frequency.value =
-            indice === 0 ? 650 : 880;
-
-        ganho.gain.setValueAtTime(0.0001, inicio);
-        ganho.gain.exponentialRampToValueAtTime(
-            0.14,
-            inicio + 0.025
+        oscilador.type = "square";
+        oscilador.frequency.setValueAtTime(
+            frequencia,
+            inicio
         );
-        ganho.gain.exponentialRampToValueAtTime(
+
+        // Volume alto, sem ultrapassar o limite digital
+        volume.gain.setValueAtTime(0.0001, inicio);
+
+        volume.gain.linearRampToValueAtTime(
+            0.65,
+            inicio + 0.03
+        );
+
+        volume.gain.setValueAtTime(
+            0.65,
+            inicio + 0.22
+        );
+
+        volume.gain.linearRampToValueAtTime(
             0.0001,
-            inicio + 0.16
+            inicio + 0.30
         );
 
-        oscilador.connect(ganho);
-        ganho.connect(contextoAudio.destination);
+        oscilador.connect(volume);
+        volume.connect(contextoAudio.destination);
 
         oscilador.start(inicio);
-        oscilador.stop(inicio + 0.17);
+        oscilador.stop(inicio + 0.31);
     });
 }
+
 
 function criarBotaoNotificacoes() {
     if (document.getElementById("alternarSom")) return;
