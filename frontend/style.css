@@ -942,4 +942,29 @@ tbody tr:hover {
         font-size: 28px;
     }
 
+
+    
+/* ==========================================
+   AVISO DE NOVO CHAMADO
+========================================== */
+
+.aviso-novo-chamado:not([hidden]) {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 9999;
+
+    background: #214c37;
+    color: #ffffff;
+
+    border-radius: 10px;
+    padding: 14px 20px;
+
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22);
+
+    font-weight: 600;
+    max-width: min(360px, calc(100vw - 44px));
+}
+
+
 }
