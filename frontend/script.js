@@ -13,20 +13,30 @@ let todosOsChamados = [];
 const formChamado = document.getElementById("formChamado");
 
 /* =====================================================
-   NOTIFICACOES AUTOMATICAS
+   NOTIFICACOES SONORAS
 ===================================================== */
 
 const INTERVALO_NOTIFICACOES = 10000;
+const CHAVE_SOM = "somChamadosAtivado";
 
 let chamadosConhecidos = null;
 let consultaEmAndamento = false;
 let temporizadorAviso = null;
 
 let contextoAudio = null;
-let audioLiberado = false;
+let somAtivado = false;
+
+// Guarda a preferência no navegador.
+if (localStorage.getItem(CHAVE_SOM) === null) {
+    localStorage.setItem(CHAVE_SOM, "true");
+}
+
+function somDesejado() {
+    return localStorage.getItem(CHAVE_SOM) === "true";
+}
 
 /* =====================================================
-   CONFIGURACAO DO AUDIO
+   PREPARAR AUDIO
 ===================================================== */
 
 function obterContextoAudio() {
@@ -35,7 +45,6 @@ function obterContextoAudio() {
         window.webkitAudioContext;
 
     if (!AudioContextClass) {
-        console.warn("Navegador sem suporte a áudio.");
         return null;
     }
 
@@ -50,96 +59,164 @@ function obterContextoAudio() {
 }
 
 /* =====================================================
-   ATIVAR AUDIO AUTOMATICAMENTE
+   ATUALIZAR BOTAO
+===================================================== */
+
+function atualizarBotaoSom() {
+    const botao = document.getElementById("ativarSom");
+
+    if (!botao) return;
+
+    if (!somDesejado()) {
+        botao.textContent = "🔕 Som desligado";
+        botao.style.background = "#777777";
+
+    } else if (
+        somAtivado &&
+        contextoAudio &&
+        contextoAudio.state === "running"
+    ) {
+        botao.textContent = "✅ Som ativado";
+        botao.style.background = "#277a43";
+
+    } else {
+        botao.textContent = "🔊 Ativar som";
+        botao.style.background = "#214c37";
+    }
+
+    botao.setAttribute(
+        "aria-pressed",
+        String(somDesejado() && somAtivado)
+    );
+}
+
+/* =====================================================
+   ATIVAR SOM
 ===================================================== */
 
 async function ativarAudioAutomaticamente() {
     const audio = obterContextoAudio();
 
-    if (!audio) return false;
-
-    if (audio.state === "running") {
-        audioLiberado = true;
-        return true;
+    if (!audio) {
+        somAtivado = false;
+        atualizarBotaoSom();
+        return false;
     }
 
     try {
-        // A tentativa pode depender da autorização
-        // do navegador após uma interação.
-        await audio.resume();
+        if (audio.state !== "running") {
+            await audio.resume();
+        }
 
-        audioLiberado = audio.state === "running";
+        somAtivado = audio.state === "running";
 
-        return audioLiberado;
+        atualizarBotaoSom();
+
+        return somAtivado;
 
     } catch (erro) {
-        audioLiberado = false;
+        console.error("Erro ao ativar som:", erro);
 
-        console.warn(
-            "Áudio aguardando autorização do navegador:",
-            erro
-        );
+        somAtivado = false;
+        atualizarBotaoSom();
 
         return false;
     }
 }
 
 /* =====================================================
-   LIBERAR AUDIO NA PRIMEIRA INTERACAO
+   BOTAO ATIVAR SOM
 ===================================================== */
 
-function liberarAudioNaInteracao() {
-    ativarAudioAutomaticamente();
+function criarBotaoAtivarSom() {
+    // Remove controles antigos de teste.
+    document.getElementById("testarSom")?.remove();
+    document.getElementById("alternarSom")?.remove();
+
+    const antigoContainer =
+        document.getElementById("controlesNotificacao");
+
+    if (antigoContainer) {
+        antigoContainer.remove();
+    }
+
+    if (document.getElementById("ativarSom")) {
+        atualizarBotaoSom();
+        return;
+    }
+
+    const botao = document.createElement("button");
+
+    botao.id = "ativarSom";
+    botao.type = "button";
+    botao.textContent = "🔊 Ativar som";
+
+    Object.assign(botao.style, {
+        position: "fixed",
+        top: "15px",
+        right: "15px",
+        zIndex: "99999",
+        background: "#214c37",
+        color: "#ffffff",
+        padding: "12px 20px",
+        border: "none",
+        borderRadius: "8px",
+        cursor: "pointer",
+        fontWeight: "bold",
+        fontSize: "14px",
+        boxShadow: "0 3px 12px rgba(0,0,0,0.2)"
+    });
+
+    botao.addEventListener("click", async () => {
+        if (somDesejado() && somAtivado) {
+            localStorage.setItem(CHAVE_SOM, "false");
+            somAtivado = false;
+            atualizarBotaoSom();
+            return;
+        }
+
+        localStorage.setItem(CHAVE_SOM, "true");
+
+        const ativado =
+            await ativarAudioAutomaticamente();
+
+        if (!ativado) {
+            alert(
+                "Não foi possível ativar o áudio. " +
+                "Verifique as permissões do navegador."
+            );
+        }
+    });
+
+    document.body.appendChild(botao);
+
+    atualizarBotaoSom();
 }
 
-document.addEventListener(
-    "pointerdown",
-    liberarAudioNaInteracao,
-    { capture: true }
-);
-
-document.addEventListener(
-    "keydown",
-    liberarAudioNaInteracao,
-    { capture: true }
-);
-
-// Tenta recuperar o áudio se a aba voltar
-// a ficar visível após um período suspensa.
-
-document.addEventListener(
-    "visibilitychange",
-    function () {
-        if (!document.hidden) {
-            ativarAudioAutomaticamente();
-            carregarChamados();
-        }
-    }
-);
-
 /* =====================================================
-   SOM DE NOTIFICACAO ALTO
+   ALARME SONORO ALTO
 ===================================================== */
 
 function tocarSomNotificacao() {
+    if (!somDesejado()) return false;
+
     if (
+        !somAtivado ||
         !contextoAudio ||
         contextoAudio.state !== "running"
     ) {
-        audioLiberado = false;
-
         console.warn(
-            "O navegador ainda não liberou o áudio."
+            "Áudio ainda não autorizado pelo navegador."
         );
+
+        somAtivado = false;
+        atualizarBotaoSom();
 
         return false;
     }
 
     try {
         const audio = contextoAudio;
-
-        // Quatro bipes fortes, semelhantes
-        // a um alerta de sistema.
 
         const frequencias = [
             850,
@@ -148,62 +225,55 @@ function tocarSomNotificacao() {
             1050
         ];
 
-        frequencias.forEach(
-            (frequencia, indice) => {
-                const inicio =
-                    audio.currentTime +
-                    indice * 0.35;
+        frequencias.forEach((frequencia, indice) => {
+            const inicio =
+                audio.currentTime + indice * 0.35;
 
-                const oscilador =
-                    audio.createOscillator();
+            const oscilador =
+                audio.createOscillator();
 
-                const volume =
-                    audio.createGain();
+            const volume =
+                audio.createGain();
 
-                oscilador.type = "square";
+            oscilador.type = "square";
 
-                oscilador.frequency.setValueAtTime(
-                    frequencia,
-                    inicio
-                );
+            oscilador.frequency.setValueAtTime(
+                frequencia,
+                inicio
+            );
 
-                // Início suave para reduzir estalos.
-                volume.gain.setValueAtTime(
-                    0.0001,
-                    inicio
-                );
+            volume.gain.setValueAtTime(
+                0.0001,
+                inicio
+            );
 
-                volume.gain.linearRampToValueAtTime(
-                    0.45,
-                    inicio + 0.025
-                );
+            volume.gain.linearRampToValueAtTime(
+                0.45,
+                inicio + 0.025
+            );
 
-                volume.gain.setValueAtTime(
-                    0.45,
-                    inicio + 0.23
-                );
+            volume.gain.setValueAtTime(
+                0.45,
+                inicio + 0.23
+            );
 
-                volume.gain.linearRampToValueAtTime(
-                    0.0001,
-                    inicio + 0.30
-                );
+            volume.gain.linearRampToValueAtTime(
+                0.0001,
+                inicio + 0.30
+            );
 
-                oscilador.connect(volume);
+            oscilador.connect(volume);
+            volume.connect(audio.destination);
 
-                volume.connect(
-                    audio.destination
-                );
-
-                oscilador.start(inicio);
-                oscilador.stop(inicio + 0.31);
-            }
-        );
+            oscilador.start(inicio);
+            oscilador.stop(inicio + 0.31);
+        });
 
         return true;
 
     } catch (erro) {
         console.error(
-            "Erro ao reproduzir notificação:",
+            "Erro ao reproduzir o alarme:",
             erro
         );
 
@@ -212,7 +282,46 @@ function tocarSomNotificacao() {
 }
 
 /* =====================================================
-   AVISO VISUAL DE NOVO CHAMADO
+   RESTAURAR SOM
+===================================================== */
+
+async function restaurarSomAutomaticamente() {
+    if (!somDesejado()) {
+        atualizarBotaoSom();
+        return;
+    }
+
+    await ativarAudioAutomaticamente();
+}
+
+// Quando o usuário interagir com a página,
+// tentar liberar o áudio caso ainda esteja bloqueado.
+
+function desbloquearAudioNaInteracao() {
+    if (!somDesejado()) return;
+
+    if (
+        !contextoAudio ||
+        contextoAudio.state !== "running"
+    ) {
+        ativarAudioAutomaticamente();
+    }
+}
+
+document.addEventListener(
+    "pointerdown",
+    desbloquearAudioNaInteracao,
+    { capture: true }
+);
+
+document.addEventListener(
+    "keydown",
+    desbloquearAudioNaInteracao,
+    { capture: true }
+);
+
+/* =====================================================
+   AVISO VISUAL
 ===================================================== */
 
 function mostrarAvisoNovosChamados(quantidade) {
@@ -222,18 +331,10 @@ function mostrarAvisoNovosChamados(quantidade) {
 
     if (!aviso) {
         aviso = document.createElement("div");
-
         aviso.id = "avisoNovoChamado";
 
-        aviso.setAttribute(
-            "role",
-            "status"
-        );
-
-        aviso.setAttribute(
-            "aria-live",
-            "polite"
-        );
+        aviso.setAttribute("role", "status");
+        aviso.setAttribute("aria-live", "polite");
 
         Object.assign(aviso.style, {
             position: "fixed",
@@ -247,17 +348,15 @@ function mostrarAvisoNovosChamados(quantidade) {
             fontWeight: "bold",
             zIndex: "99999",
             maxWidth: "calc(100vw - 40px)",
-            boxShadow:
-                "0 5px 20px rgba(0,0,0,0.3)"
+            boxShadow: "0 5px 20px rgba(0,0,0,0.3)"
         });
 
         document.body.appendChild(aviso);
     }
 
-    aviso.textContent =
-        quantidade === 1
-            ? "🔔 NOVO CHAMADO RECEBIDO!"
-            : `🔔 ${quantidade} NOVOS CHAMADOS RECEBIDOS!`;
+    aviso.textContent = quantidade === 1
+        ? "🔔 NOVO CHAMADO RECEBIDO!"
+        : `🔔 ${quantidade} NOVOS CHAMADOS RECEBIDOS!`;
 
     aviso.hidden = false;
 
@@ -269,7 +368,7 @@ function mostrarAvisoNovosChamados(quantidade) {
 }
 
 /* =====================================================
-   IDENTIFICAR NOVOS CHAMADOS
+   VERIFICAR NOVOS CHAMADOS
 ===================================================== */
 
 function verificarNovosChamados(chamados) {
@@ -281,9 +380,7 @@ function verificarNovosChamados(chamados) {
             .map(chamado => String(chamado.id))
     );
 
-    // Na primeira consulta, registra os chamados
-    // existentes sem emitir alarme.
-
+    // Primeira consulta: não notificar chamados antigos.
     if (chamadosConhecidos === null) {
         chamadosConhecidos = idsAtuais;
         return;
@@ -300,10 +397,7 @@ function verificarNovosChamados(chamados) {
     chamadosConhecidos = idsAtuais;
 
     if (novos.length > 0) {
-        mostrarAvisoNovosChamados(
-            novos.length
-        );
-
+        mostrarAvisoNovosChamados(novos.length);
         tocarSomNotificacao();
     }
 }
@@ -318,10 +412,6 @@ if (formChamado) {
         async function (event) {
             event.preventDefault();
 
-            // A submissão também oferece uma
-            // oportunidade de liberar o áudio.
-            ativarAudioAutomaticamente();
-
             const obter = id =>
                 document.getElementById(id)
                     .value.trim();
@@ -329,8 +419,7 @@ if (formChamado) {
             const numeroChamado =
                 obter("numero_chamado");
 
-            const usuario =
-                obter("usuario");
+            const usuario = obter("usuario");
 
             const chamado = {
                 numero_chamado:
@@ -343,49 +432,28 @@ if (formChamado) {
                         ? null
                         : usuario,
 
-                funcionario:
-                    obter("funcionario"),
-
-                servico:
-                    obter("servico"),
-
-                solicitante:
-                    obter("solicitante"),
-
-                setor:
-                    obter("setor"),
-
-                unidade:
-                    obter("unidade"),
-
-                andar:
-                    obter("andar"),
-
-                predio:
-                    obter("predio"),
-
-                observacao:
-                    obter("observacao")
+                funcionario: obter("funcionario"),
+                servico: obter("servico"),
+                solicitante: obter("solicitante"),
+                setor: obter("setor"),
+                unidade: obter("unidade"),
+                andar: obter("andar"),
+                predio: obter("predio"),
+                observacao: obter("observacao")
             };
 
             try {
-                const resposta = await fetch(
-                    API_URL,
-                    {
-                        method: "POST",
+                const resposta = await fetch(API_URL, {
+                    method: "POST",
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
 
-                        body:
-                            JSON.stringify(chamado)
-                    }
-                );
+                    body: JSON.stringify(chamado)
+                });
 
-                const dados =
-                    await resposta.json();
+                const dados = await resposta.json();
 
                 if (!resposta.ok) {
                     alert(
@@ -393,19 +461,6 @@ if (formChamado) {
                         "Erro ao cadastrar chamado."
                     );
                     return;
-                }
-
-                // Se esta aba ainda não recebeu a
-                // primeira listagem, mantém o novo ID
-                // disponível para notificação.
-
-                if (
-                    chamadosConhecidos === null &&
-                    dados.id != null
-                ) {
-                    // Não inicializa a lista com o novo
-                    // chamado; a primeira consulta
-                    // deverá carregar o estado completo.
                 }
 
                 if (
@@ -417,11 +472,8 @@ if (formChamado) {
                         dados.numero_chamado +
                         " aberto com sucesso!"
                     );
-
                 } else {
-                    alert(
-                        "Chamado aberto com sucesso!"
-                    );
+                    alert("Chamado aberto com sucesso!");
                 }
 
                 formChamado.reset();
@@ -452,12 +504,9 @@ async function carregarChamados() {
     consultaEmAndamento = true;
 
     try {
-        const resposta = await fetch(
-            API_URL,
-            {
-                cache: "no-store"
-            }
-        );
+        const resposta = await fetch(API_URL, {
+            cache: "no-store"
+        });
 
         if (!resposta.ok) {
             throw new Error(
@@ -465,8 +514,7 @@ async function carregarChamados() {
             );
         }
 
-        const chamados =
-            await resposta.json();
+        const chamados = await resposta.json();
 
         if (!Array.isArray(chamados)) {
             throw new Error(
@@ -489,9 +537,7 @@ async function carregarChamados() {
 
         if (chamadosConhecidos === null) {
             const tabela =
-                document.getElementById(
-                    "listaChamados"
-                );
+                document.getElementById("listaChamados");
 
             if (tabela) {
                 tabela.innerHTML = `
@@ -503,73 +549,46 @@ async function carregarChamados() {
                 `;
             }
         }
-
     } finally {
         consultaEmAndamento = false;
     }
 }
 
 /* =====================================================
-   CONTADORES DE ORDENS DE SERVICO
+   CONTADORES
 ===================================================== */
 
 function atualizarContadores() {
     const totalOS =
-        document.getElementById(
-            "totalOS"
-        );
+        document.getElementById("totalOS");
 
     const totalAbertas =
-        document.getElementById(
-            "totalAbertas"
-        );
+        document.getElementById("totalAbertas");
 
     const totalPendentes =
-        document.getElementById(
-            "totalPendentes"
-        );
+        document.getElementById("totalPendentes");
 
     const totalConcluidas =
-        document.getElementById(
-            "totalConcluidas"
-        );
+        document.getElementById("totalConcluidas");
 
-    const total =
-        todosOsChamados.length;
+    const total = todosOsChamados.length;
 
-    const abertas =
-        todosOsChamados.filter(
-            chamado =>
-                chamado.status === "ABERTO"
-        ).length;
+    const abertas = todosOsChamados.filter(
+        chamado => chamado.status === "ABERTO"
+    ).length;
 
-    const pendentes =
-        todosOsChamados.filter(
-            chamado =>
-                chamado.status === "PENDENTE"
-        ).length;
+    const pendentes = todosOsChamados.filter(
+        chamado => chamado.status === "PENDENTE"
+    ).length;
 
-    const concluidas =
-        todosOsChamados.filter(
-            chamado =>
-                chamado.status === "CONCLUÍDO"
-        ).length;
+    const concluidas = todosOsChamados.filter(
+        chamado => chamado.status === "CONCLUÍDO"
+    ).length;
 
-    if (totalOS) {
-        totalOS.textContent = total;
-    }
-
-    if (totalAbertas) {
-        totalAbertas.textContent = abertas;
-    }
-
-    if (totalPendentes) {
-        totalPendentes.textContent = pendentes;
-    }
-
-    if (totalConcluidas) {
-        totalConcluidas.textContent = concluidas;
-    }
+    if (totalOS) totalOS.textContent = total;
+    if (totalAbertas) totalAbertas.textContent = abertas;
+    if (totalPendentes) totalPendentes.textContent = pendentes;
+    if (totalConcluidas) totalConcluidas.textContent = concluidas;
 }
 
 /* =====================================================
@@ -578,9 +597,7 @@ function atualizarContadores() {
 
 function renderizarChamados(chamados) {
     const tabela =
-        document.getElementById(
-            "listaChamados"
-        );
+        document.getElementById("listaChamados");
 
     if (!tabela) return;
 
@@ -602,27 +619,18 @@ function renderizarChamados(chamados) {
 
         if (chamado.status === "ABERTO") {
             classeStatus = "status-aberto";
-
-        } else if (
-            chamado.status === "PENDENTE"
-        ) {
+        } else if (chamado.status === "PENDENTE") {
             classeStatus = "status-pendente";
-
         } else {
             classeStatus = "status-concluido";
         }
 
-        const linha =
-            document.createElement("tr");
+        const linha = document.createElement("tr");
 
         const adicionarCelula = valor => {
-            const td =
-                document.createElement("td");
-
+            const td = document.createElement("td");
             td.textContent = valor ?? "";
-
             linha.appendChild(td);
-
             return td;
         };
 
@@ -645,33 +653,21 @@ function renderizarChamados(chamados) {
         adicionarCelula(chamado.predio);
         adicionarCelula(chamado.observacao);
 
-        const tdStatus =
-            adicionarCelula("");
+        const tdStatus = adicionarCelula("");
 
-        const spanStatus =
-            document.createElement("span");
-
-        spanStatus.className =
-            "status " + classeStatus;
-
-        spanStatus.textContent =
-            chamado.status ?? "";
+        const spanStatus = document.createElement("span");
+        spanStatus.className = "status " + classeStatus;
+        spanStatus.textContent = chamado.status ?? "";
 
         tdStatus.appendChild(spanStatus);
 
-        const tdAcoes =
-            adicionarCelula("");
-
-        const divAcoes =
-            document.createElement("div");
+        const tdAcoes = adicionarCelula("");
+        const divAcoes = document.createElement("div");
 
         divAcoes.className = "acoes";
 
         // EDITAR
-
-        const btnEditar =
-            document.createElement("button");
-
+        const btnEditar = document.createElement("button");
         btnEditar.type = "button";
         btnEditar.className = "btn-editar";
         btnEditar.textContent = "Editar";
@@ -682,20 +678,13 @@ function renderizarChamados(chamados) {
         divAcoes.appendChild(btnEditar);
 
         // CONCLUIR
-
-        if (
-            chamado.status !== "CONCLUÍDO"
-        ) {
+        if (chamado.status !== "CONCLUÍDO") {
             const btnConcluir =
                 document.createElement("button");
 
             btnConcluir.type = "button";
-
-            btnConcluir.className =
-                "btn-concluir";
-
-            btnConcluir.textContent =
-                "Concluir";
+            btnConcluir.className = "btn-concluir";
+            btnConcluir.textContent = "Concluir";
 
             btnConcluir.onclick = () =>
                 concluirChamado(chamado.id);
@@ -704,7 +693,6 @@ function renderizarChamados(chamados) {
         }
 
         // EXCLUIR
-
         const btnExcluir =
             document.createElement("button");
 
@@ -718,67 +706,54 @@ function renderizarChamados(chamados) {
         divAcoes.appendChild(btnExcluir);
 
         tdAcoes.appendChild(divAcoes);
-
         tabela.appendChild(linha);
     });
 }
 
 /* =====================================================
-   PESQUISAR CHAMADOS
+   PESQUISA
 ===================================================== */
 
 function pesquisarChamados() {
     const campoPesquisa =
-        document.getElementById(
-            "pesquisaChamados"
-        );
+        document.getElementById("pesquisaChamados");
 
     if (!campoPesquisa) {
-        renderizarChamados(
-            todosOsChamados
-        );
+        renderizarChamados(todosOsChamados);
         return;
     }
 
-    const pesquisa =
-        campoPesquisa.value
-            .toLowerCase()
-            .trim();
+    const pesquisa = campoPesquisa.value
+        .toLowerCase()
+        .trim();
 
     if (pesquisa === "") {
-        renderizarChamados(
-            todosOsChamados
-        );
+        renderizarChamados(todosOsChamados);
         return;
     }
 
-    const chamadosFiltrados =
-        todosOsChamados.filter(
-            chamado => {
-                const setor = String(
-                    chamado.setor || ""
-                ).toLowerCase();
+    const chamadosFiltrados = todosOsChamados.filter(
+        chamado => {
+            const setor = String(
+                chamado.setor || ""
+            ).toLowerCase();
 
-                const numero = String(
-                    chamado.numero_chamado || ""
-                ).toLowerCase();
+            const numero = String(
+                chamado.numero_chamado || ""
+            ).toLowerCase();
 
-                return (
-                    setor.includes(pesquisa) ||
-                    numero.includes(pesquisa)
-                );
-            }
-        );
-
-    renderizarChamados(
-        chamadosFiltrados
+            return (
+                setor.includes(pesquisa) ||
+                numero.includes(pesquisa)
+            );
+        }
     );
+
+    renderizarChamados(chamadosFiltrados);
 }
 
 const campoPesquisa =
-    document.getElementById(
-        "pesquisaChamados"
-    );
+    document.getElementById("pesquisaChamados");
 
 if (campoPesquisa) {
     campoPesquisa.addEventListener(
@@ -792,68 +767,41 @@ if (campoPesquisa) {
 ===================================================== */
 
 function abrirModalEditar(id) {
-    const chamado =
-        todosOsChamados.find(
-            item =>
-                String(item.id) === String(id)
-        );
+    const chamado = todosOsChamados.find(
+        item => String(item.id) === String(id)
+    );
 
     if (!chamado) {
-        alert(
-            "Chamado não encontrado."
-        );
+        alert("Chamado não encontrado.");
         return;
     }
 
     chamadoEditandoId = id;
 
     const campos = {
-        editarNumero:
-            chamado.numero_chamado,
-
-        editarUsuario:
-            chamado.usuario,
-
-        editarFuncionario:
-            chamado.funcionario,
-
-        editarServico:
-            chamado.servico,
-
-        editarSolicitante:
-            chamado.solicitante,
-
-        editarSetor:
-            chamado.setor,
-
-        editarUnidade:
-            chamado.unidade,
-
-        editarAndar:
-            chamado.andar,
-
-        editarPredio:
-            chamado.predio,
-
-        editarObservacao:
-            chamado.observacao
+        editarNumero: chamado.numero_chamado,
+        editarUsuario: chamado.usuario,
+        editarFuncionario: chamado.funcionario,
+        editarServico: chamado.servico,
+        editarSolicitante: chamado.solicitante,
+        editarSetor: chamado.setor,
+        editarUnidade: chamado.unidade,
+        editarAndar: chamado.andar,
+        editarPredio: chamado.predio,
+        editarObservacao: chamado.observacao
     };
 
     Object.entries(campos).forEach(
         ([campo, valor]) => {
-            document.getElementById(
-                campo
-            ).value = valor ?? "";
+            document.getElementById(campo).value =
+                valor ?? "";
         }
     );
 
-    document.getElementById(
-        "modalEditar"
-    ).classList.add("ativo");
+    document.getElementById("modalEditar")
+        .classList.add("ativo");
 
-    document.getElementById(
-        "editarNumero"
-    ).focus();
+    document.getElementById("editarNumero").focus();
 }
 
 /* =====================================================
@@ -863,9 +811,8 @@ function abrirModalEditar(id) {
 function fecharModal() {
     chamadoEditandoId = null;
 
-    document.getElementById(
-        "modalEditar"
-    ).classList.remove("ativo");
+    document.getElementById("modalEditar")
+        .classList.remove("ativo");
 
     [
         "editarNumero",
@@ -879,9 +826,7 @@ function fecharModal() {
         "editarPredio",
         "editarObservacao"
     ].forEach(id => {
-        document.getElementById(
-            id
-        ).value = "";
+        document.getElementById(id).value = "";
     });
 }
 
@@ -891,19 +836,14 @@ function fecharModal() {
 
 async function salvarEdicao() {
     if (!chamadoEditandoId) {
-        alert(
-            "Nenhum chamado foi selecionado."
-        );
+        alert("Nenhum chamado foi selecionado.");
         return;
     }
 
     const obter = id =>
-        document.getElementById(
-            id
-        ).value.trim();
+        document.getElementById(id).value.trim();
 
-    const numero =
-        obter("editarNumero");
+    const numero = obter("editarNumero");
 
     const camposObrigatorios = {
         editarFuncionario: "funcionário",
@@ -921,14 +861,8 @@ async function salvarEdicao() {
         )
     ) {
         if (!obter(id)) {
-            alert(
-                "Informe o " + nome + "."
-            );
-
-            document.getElementById(
-                id
-            ).focus();
-
+            alert("Informe o " + nome + ".");
+            document.getElementById(id).focus();
             return;
         }
     }
@@ -941,47 +875,24 @@ async function salvarEdicao() {
         )
     ) {
         alert(
-            "O número do chamado deve conter " +
-            "apenas números maiores que zero."
+            "O número do chamado deve conter apenas números maiores que zero."
         );
 
-        document.getElementById(
-            "editarNumero"
-        ).focus();
-
+        document.getElementById("editarNumero").focus();
         return;
     }
 
     const dadosEdicao = {
-        numero_chamado:
-            numero === "" ? null : numero,
-
-        usuario:
-            obter("editarUsuario") || null,
-
-        funcionario:
-            obter("editarFuncionario"),
-
-        servico:
-            obter("editarServico"),
-
-        solicitante:
-            obter("editarSolicitante"),
-
-        setor:
-            obter("editarSetor"),
-
-        unidade:
-            obter("editarUnidade"),
-
-        andar:
-            obter("editarAndar"),
-
-        predio:
-            obter("editarPredio"),
-
-        observacao:
-            obter("editarObservacao")
+        numero_chamado: numero === "" ? null : numero,
+        usuario: obter("editarUsuario") || null,
+        funcionario: obter("editarFuncionario"),
+        servico: obter("editarServico"),
+        solicitante: obter("editarSolicitante"),
+        setor: obter("editarSetor"),
+        unidade: obter("editarUnidade"),
+        andar: obter("editarAndar"),
+        predio: obter("editarPredio"),
+        observacao: obter("editarObservacao")
     };
 
     try {
@@ -991,17 +902,14 @@ async function salvarEdicao() {
                 method: "PUT",
 
                 headers: {
-                    "Content-Type":
-                        "application/json"
+                    "Content-Type": "application/json"
                 },
 
-                body:
-                    JSON.stringify(dadosEdicao)
+                body: JSON.stringify(dadosEdicao)
             }
         );
 
-        const dados =
-            await resposta.json();
+        const dados = await resposta.json();
 
         if (!resposta.ok) {
             alert(
@@ -1011,23 +919,14 @@ async function salvarEdicao() {
             return;
         }
 
-        alert(
-            "Chamado alterado com sucesso!"
-        );
+        alert("Chamado alterado com sucesso!");
 
         fecharModal();
-
         await carregarChamados();
 
     } catch (erro) {
-        console.error(
-            "Erro ao editar chamado:",
-            erro
-        );
-
-        alert(
-            "Erro ao conectar com o servidor."
-        );
+        console.error("Erro ao editar chamado:", erro);
+        alert("Erro ao conectar com o servidor.");
     }
 }
 
@@ -1050,8 +949,7 @@ async function concluirChamado(id) {
             }
         );
 
-        const dados =
-            await resposta.json();
+        const dados = await resposta.json();
 
         if (!resposta.ok) {
             alert(
@@ -1061,21 +959,12 @@ async function concluirChamado(id) {
             return;
         }
 
-        alert(
-            "Chamado concluído com sucesso!"
-        );
-
+        alert("Chamado concluído com sucesso!");
         await carregarChamados();
 
     } catch (erro) {
-        console.error(
-            "Erro ao concluir chamado:",
-            erro
-        );
-
-        alert(
-            "Erro ao conectar com o servidor."
-        );
+        console.error("Erro ao concluir chamado:", erro);
+        alert("Erro ao conectar com o servidor.");
     }
 }
 
@@ -1099,8 +988,7 @@ async function excluirChamado(id) {
             }
         );
 
-        const dados =
-            await resposta.json();
+        const dados = await resposta.json();
 
         if (!resposta.ok) {
             alert(
@@ -1110,21 +998,12 @@ async function excluirChamado(id) {
             return;
         }
 
-        alert(
-            "Chamado excluído com sucesso!"
-        );
-
+        alert("Chamado excluído com sucesso!");
         await carregarChamados();
 
     } catch (erro) {
-        console.error(
-            "Erro ao excluir chamado:",
-            erro
-        );
-
-        alert(
-            "Erro ao conectar com o servidor."
-        );
+        console.error("Erro ao excluir chamado:", erro);
+        alert("Erro ao conectar com o servidor.");
     }
 }
 
@@ -1132,44 +1011,41 @@ async function excluirChamado(id) {
    FECHAR MODAL CLICANDO FORA
 ===================================================== */
 
-window.addEventListener(
-    "click",
-    function (event) {
-        const modal =
-            document.getElementById(
-                "modalEditar"
-            );
+window.addEventListener("click", function (event) {
+    const modal = document.getElementById("modalEditar");
 
-        if (
-            modal &&
-            event.target === modal
-        ) {
-            fecharModal();
-        }
+    if (modal && event.target === modal) {
+        fecharModal();
     }
-);
+});
 
 /* =====================================================
    FECHAR MODAL COM ESC
 ===================================================== */
 
-window.addEventListener(
-    "keydown",
-    function (event) {
-        if (event.key !== "Escape") return;
-
-        const modal =
-            document.getElementById(
-                "modalEditar"
-            );
+window.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        const modal = document.getElementById("modalEditar");
 
         if (
             modal &&
-            modal.classList.contains(
-                "ativo"
-            )
+            modal.classList.contains("ativo")
         ) {
             fecharModal();
+        }
+    }
+});
+
+/* =====================================================
+   VOLTAR PARA A PAGINA
+===================================================== */
+
+document.addEventListener(
+    "visibilitychange",
+    function () {
+        if (!document.hidden) {
+            restaurarSomAutomaticamente();
+            carregarChamados();
         }
     }
 );
@@ -1178,13 +1054,16 @@ window.addEventListener(
    INICIAR SISTEMA
 ===================================================== */
 
-// Tenta preparar o áudio automaticamente.
-ativarAudioAutomaticamente();
+// Restaurar o botão de ativação do som.
+criarBotaoAtivarSom();
 
-// Carrega os chamados existentes.
+// Tentar restaurar o áudio automaticamente.
+restaurarSomAutomaticamente();
+
+// Carregar os chamados existentes.
 carregarChamados();
 
-// Verifica novos chamados a cada 10 segundos.
+// Verificar novos chamados a cada 10 segundos.
 setInterval(() => {
     carregarChamados();
 }, INTERVALO_NOTIFICACOES);
