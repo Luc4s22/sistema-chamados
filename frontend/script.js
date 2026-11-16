@@ -89,45 +89,50 @@ function mostrarAvisoNovosChamados(quantidade) {
     }, 6000);
 }
 
-async function alternarSom() {
-    const botao = document.getElementById("alternarSom");
+async function restaurarSomAutomaticamente() {
+    const preferencia =
+        localStorage.getItem("somChamadosAtivado");
 
-    if (somAtivado) {
-        somAtivado = false;
-    } else {
-        const AudioContextClass =
-            window.AudioContext || window.webkitAudioContext;
+    if (preferencia !== "true") return;
 
-        if (!AudioContextClass) {
-            alert("Este navegador não suporta notificações sonoras.");
-            return;
+    const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    try {
+        if (!contextoAudio) {
+            contextoAudio = new AudioContextClass();
         }
 
-        try {
-            if (!contextoAudio) {
-                contextoAudio = new AudioContextClass();
-            }
+        await contextoAudio.resume();
 
-            await contextoAudio.resume();
-            somAtivado = contextoAudio.state === "running";
-        } catch (erro) {
-            console.error("Erro ao ativar som:", erro);
-            alert("Não foi possível ativar o som.");
-            return;
+        somAtivado = contextoAudio.state === "running";
+
+        const botao = document.getElementById("alternarSom");
+
+        if (botao) {
+            botao.textContent = somAtivado
+                ? "🔊 Som ativado"
+                : "🔔 Ativar som";
         }
-    }
-
-    if (botao) {
-        botao.textContent = somAtivado
-            ? "🔊 Som ativado"
-            : "🔔 Ativar som";
-
-        botao.setAttribute(
-            "aria-pressed",
-            String(somAtivado)
-        );
+    } catch (erro) {
+        console.warn("O navegador bloqueou o áudio automático.");
     }
 }
+
+document.addEventListener("click", () => {
+    if (
+        localStorage.getItem("somChamadosAtivado") === "true" &&
+        !somAtivado
+    ) {
+        restaurarSomAutomaticamente();
+    }
+});
+
+restaurarSomAutomaticamente();
+
+
 
 
 function tocarSomNotificacao() {
